@@ -476,6 +476,7 @@ static void prov_stop_task(void *arg)
     /* This delay is so that the client side app is notified first
      * and then the provisioning is stopped. Generally 1000ms is enough. */
     uint32_t cleanup_delay = prov_ctx->cleanup_delay > 100 ? prov_ctx->cleanup_delay : 100;
+    ESP_LOGI(TAG, "Delaying %d ms", cleanup_delay);
     vTaskDelay(cleanup_delay / portTICK_PERIOD_MS);
 
     /* All the extra application added endpoints are also
@@ -912,10 +913,13 @@ esp_err_t wifi_prov_mgr_wifi_scan_start(bool blocking, bool passive,
         prov_ctx->ap_list_sorted[i] = NULL;
     }
 
+    ESP_LOGI(TAG, "Scanning period %d", period_ms);
     if (passive) {
+        ESP_LOGI(TAG, "Passive scanning");
         prov_ctx->scan_cfg.scan_type = WIFI_SCAN_TYPE_PASSIVE;
         prov_ctx->scan_cfg.scan_time.passive = period_ms;
     } else {
+        ESP_LOGI(TAG, "Active scanning");
         prov_ctx->scan_cfg.scan_type = WIFI_SCAN_TYPE_ACTIVE;
         prov_ctx->scan_cfg.scan_time.active.min = period_ms;
         prov_ctx->scan_cfg.scan_time.active.max = period_ms;
@@ -1415,27 +1419,28 @@ esp_err_t wifi_prov_mgr_start_provisioning(wifi_prov_security_t security, const 
      * credentials (i.e. without erasing the copy on NVS). Also
      * call disconnect to make sure device doesn't remain connected
      * to the AP whose credentials were present earlier */
-    wifi_config_t wifi_cfg_empty, wifi_cfg_old;
-    memset(&wifi_cfg_empty, 0, sizeof(wifi_config_t));
+    // wifi_config_t wifi_cfg_empty, wifi_cfg_old;
+    wifi_config_t wifi_cfg_old;
+    // memset(&wifi_cfg_empty, 0, sizeof(wifi_config_t));
     esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_cfg_old);
-    err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set Wi-Fi storage to RAM");
-        RELEASE_LOCK(prov_ctx_lock);
-        return err;
-    }
-    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_cfg_empty);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set empty Wi-Fi credentials");
-        RELEASE_LOCK(prov_ctx_lock);
-        return err;
-    }
-    err = esp_wifi_disconnect();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to disconnect");
-        RELEASE_LOCK(prov_ctx_lock);
-        return err;
-    }
+    // err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
+    // if (err != ESP_OK) {
+    //     ESP_LOGE(TAG, "Failed to set Wi-Fi storage to RAM");
+    //     RELEASE_LOCK(prov_ctx_lock);
+    //     return err;
+    // }
+    // esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_cfg_empty);
+    // if (err != ESP_OK) {
+    //     ESP_LOGE(TAG, "Failed to set empty Wi-Fi credentials");
+    //     RELEASE_LOCK(prov_ctx_lock);
+    //     return err;
+    // }
+    // err = esp_wifi_disconnect();
+    // if (err != ESP_OK) {
+    //     ESP_LOGE(TAG, "Failed to disconnect");
+    //     RELEASE_LOCK(prov_ctx_lock);
+    //     return err;
+    // }
 
     /* Initialize app data */
     if (security == WIFI_PROV_SECURITY_0) {
