@@ -908,18 +908,17 @@ esp_err_t wifi_prov_mgr_wifi_scan_start(bool blocking, bool passive,
         return ESP_OK;
     }
 
+    execute_event_cb(WIFI_PROV_SCAN_STARTED, NULL, 0);
+
     /* Clear sorted list for new entries */
     for (uint8_t i = 0; i < MAX_SCAN_RESULTS; i++) {
         prov_ctx->ap_list_sorted[i] = NULL;
     }
 
-    ESP_LOGI(TAG, "Scanning period %d", period_ms);
     if (passive) {
-        ESP_LOGI(TAG, "Passive scanning");
         prov_ctx->scan_cfg.scan_type = WIFI_SCAN_TYPE_PASSIVE;
         prov_ctx->scan_cfg.scan_time.passive = period_ms;
     } else {
-        ESP_LOGI(TAG, "Active scanning");
         prov_ctx->scan_cfg.scan_type = WIFI_SCAN_TYPE_ACTIVE;
         prov_ctx->scan_cfg.scan_time.active.min = period_ms;
         prov_ctx->scan_cfg.scan_time.active.max = period_ms;
@@ -933,6 +932,7 @@ esp_err_t wifi_prov_mgr_wifi_scan_start(bool blocking, bool passive,
         ESP_LOGD(TAG, "Scan starting...");
         prov_ctx->scan_cfg.channel = 0;
     }
+
 
     if (esp_wifi_scan_start(&prov_ctx->scan_cfg, false) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start scan");
